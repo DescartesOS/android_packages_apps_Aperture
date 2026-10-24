@@ -259,6 +259,7 @@
 
     <!-- Video dynamic ranges -->
     <string name="video_dynamic_range_sdr" translatable="false">SDR</string>
+    <string name="video_dynamic_range_hlg_8_bit" translatable="false">HLG (8-bit)</string>
     <string name="video_dynamic_range_hlg_10_bit" translatable="false">HLG (10 bit)</string>
     <string name="video_dynamic_range_hdr10_10_bit" translatable="false">HDR10 (10 bit)</string>
     <string name="video_dynamic_range_hdr10_plus_10_bit" translatable="false">HDR10+ (10 bit)</string>

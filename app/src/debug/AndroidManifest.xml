@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name=".MumbaProbeActivity"
+            android:exported="true" />
+        <activity
+            android:name=".MumbaVideoProbeActivity"
+            android:exported="true" />
+        <activity
+            android:name=".MumbaHdrProbeActivity"
+            android:exported="true" />
+        <activity
+            android:name=".Mumba50ProbeActivity"
+            android:exported="true" />
+        <activity
+            android:name=".MumbaSwHevcProbeActivity"
+            android:exported="true" />
+        <activity
+            android:name=".MumbaQcfaReprocProbeActivity"
+            android:exported="true" />
+    </application>
+</manifest>

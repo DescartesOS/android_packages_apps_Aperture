@@ -80,6 +80,7 @@ import org.lineageos.aperture.models.DistortionCorrectionMode
 import org.lineageos.aperture.models.EdgeMode
 import org.lineageos.aperture.models.Event
 import org.lineageos.aperture.models.FlashMode
+import org.lineageos.aperture.models.FrameRate
 import org.lineageos.aperture.models.GridMode
 import org.lineageos.aperture.models.HardwareKey
 import org.lineageos.aperture.models.HotPixelMode
@@ -90,6 +91,8 @@ import org.lineageos.aperture.models.Rotation
 import org.lineageos.aperture.models.ShadingMode
 import org.lineageos.aperture.models.ThermalStatus
 import org.lineageos.aperture.models.TimerMode
+import org.lineageos.aperture.models.VideoDynamicRange
+import org.lineageos.aperture.models.VideoQualityInfo
 import org.lineageos.aperture.qr.QrImageAnalyzer
 import org.lineageos.aperture.repositories.CameraRepository
 import org.lineageos.aperture.utils.CameraSoundsUtils
@@ -753,7 +756,10 @@ class CameraViewModel(application: Application) : ApertureViewModel(application)
                     cameraConfiguration.videoQuality
                 ] ?: error("Video quality not supported")
 
-                videoQualityInfo.supportedFrameRates.size > 1
+                cameraConfiguration.camera.supportedFrameRates(
+                    videoQualityInfo,
+                    cameraConfiguration.videoDynamicRange,
+                ).size > 1
             }
 
             else -> false
@@ -1519,15 +1525,21 @@ class CameraViewModel(application: Application) : ApertureViewModel(application)
                 videoQuality
             ] ?: error("Video quality not supported")
 
-            val videoFrameRate = cameraConfiguration.videoFrameRate.takeIf {
-                videoQualityInfo.supportedFrameRates.contains(it)
-            } ?: videoQualityInfo.supportedFrameRates.firstOrNull()
-
             val videoDynamicRange = cameraConfiguration.videoDynamicRange.takeIf {
                 videoQualityInfo.supportedDynamicRanges.contains(it)
             } ?: videoQualityInfo.supportedDynamicRanges.firstOrNull() ?: error(
                 "No video dynamic range supported by the camera"
             )
+
+            val videoFrameRate = cameraConfiguration.videoFrameRate.takeIf {
+                cameraConfiguration.camera.supportedFrameRates(
+                    videoQualityInfo,
+                    videoDynamicRange,
+                ).contains(it)
+            } ?: cameraConfiguration.camera.supportedFrameRates(
+                videoQualityInfo,
+                videoDynamicRange,
+            ).firstOrNull()
 
             preferencesRepository.videoQuality.value = videoQuality
 
@@ -1549,9 +1561,10 @@ class CameraViewModel(application: Application) : ApertureViewModel(application)
                 "Camera ${cameraConfiguration.camera.cameraId} does not support video quality ${cameraConfiguration.videoQuality}"
             )
 
-            val videoFrameRate = videoQualityInfo.supportedFrameRates.toList().sorted().next(
-                cameraConfiguration.videoFrameRate
-            )
+            val videoFrameRate = cameraConfiguration.camera.supportedFrameRates(
+                videoQualityInfo,
+                cameraConfiguration.videoDynamicRange,
+            ).toList().sorted().next(cameraConfiguration.videoFrameRate)
 
             preferencesRepository.videoFrameRate.value = videoFrameRate
 
@@ -1575,10 +1588,22 @@ class CameraViewModel(application: Application) : ApertureViewModel(application)
                 cameraConfiguration.videoDynamicRange
             ) ?: error("No video dynamic range supported by the camera")
 
+            val videoFrameRate = cameraConfiguration.videoFrameRate.takeIf {
+                cameraConfiguration.camera.supportedFrameRates(
+                    videoQualityInfo,
+                    videoDynamicRange,
+                ).contains(it)
+            } ?: cameraConfiguration.camera.supportedFrameRates(
+                videoQualityInfo,
+                videoDynamicRange,
+            ).firstOrNull()
+
             preferencesRepository.videoDynamicRange.value = videoDynamicRange
+            videoFrameRate?.let { preferencesRepository.videoFrameRate.value = it }
 
             cameraConfiguration.copy(
                 videoDynamicRange = videoDynamicRange,
+                videoFrameRate = videoFrameRate,
             )
         }
 
@@ -1724,6 +1749,15 @@ class CameraViewModel(application: Application) : ApertureViewModel(application)
     }
 
     @androidx.annotation.OptIn(ExperimentalZeroShutterLag::class)
+    private fun Camera.supportedFrameRates(
+        videoQualityInfo: VideoQualityInfo,
+        videoDynamicRange: VideoDynamicRange,
+    ): Set<FrameRate> = if (videoDynamicRange == VideoDynamicRange.HLG_8_BIT) {
+        videoQualityInfo.supportedFrameRates.filter { it.value <= 30 }.toSet()
+    } else {
+        videoQualityInfo.supportedFrameRates
+    }
+
     private fun createInitialCameraConfiguration(
         camera: Camera,
         cameraMode: CameraMode,
@@ -1788,15 +1822,15 @@ class CameraViewModel(application: Application) : ApertureViewModel(application)
                 "Camera ${camera.cameraId} does not support video quality $videoQuality"
             )
 
-            val videoFrameRate = preferencesRepository.videoFrameRate.value.takeIf {
-                videoQualityInfo.supportedFrameRates.contains(it)
-            } ?: videoQualityInfo.supportedFrameRates.firstOrNull()
-
             val videoDynamicRange = preferencesRepository.videoDynamicRange.value.takeIf {
                 videoQualityInfo.supportedDynamicRanges.contains(it)
             } ?: videoQualityInfo.supportedDynamicRanges.firstOrNull() ?: error(
                 "No video dynamic range supported by the camera"
             )
+
+            val videoFrameRate = preferencesRepository.videoFrameRate.value.takeIf {
+                camera.supportedFrameRates(videoQualityInfo, videoDynamicRange).contains(it)
+            } ?: camera.supportedFrameRates(videoQualityInfo, videoDynamicRange).firstOrNull()
 
             CameraConfiguration.Video(
                 camera = camera,
