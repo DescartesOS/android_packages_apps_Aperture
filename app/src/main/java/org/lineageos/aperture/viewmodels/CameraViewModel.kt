@@ -1165,7 +1165,7 @@ class CameraViewModel(application: Application) : ApertureViewModel(application)
     }
 
     fun takeVideoSnapshot() {
-        if (!cameraState.value.isRecordingVideo) return
+        if (!cameraState.value.isRecordingVideo || !cameraController.isImageCaptureEnabled) return
 
         val outputOptions = StorageUtils.getPhotoMediaStoreOutputOptions(
             applicationContext.contentResolver,

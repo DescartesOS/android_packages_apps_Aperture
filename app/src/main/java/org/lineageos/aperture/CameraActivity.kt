@@ -1663,7 +1663,7 @@ open class CameraActivity : AppCompatActivity(R.layout.activity_camera) {
                         }
                     }
 
-                CameraController.VIDEO_CAPTURE
+                CameraController.VIDEO_CAPTURE or CameraController.IMAGE_CAPTURE
             }
 
             is CameraConfiguration.Qr -> {
