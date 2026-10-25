@@ -15,8 +15,6 @@
     <string name="flip_camera_button_description">Flip camera</string>
     <string name="video_snapshot_button_description">Take photo</string>
     <string name="gallery_button_description">Gallery</string>
-    <string name="smile_capture_on">SMILE ON</string>
-    <string name="smile_capture_off">SMILE</string>
     <string name="google_lens_button_description">Open Google Lens</string>
     <string name="image_view_description">Image preview</string>
     <string name="pro_button_description">Pro settings</string>

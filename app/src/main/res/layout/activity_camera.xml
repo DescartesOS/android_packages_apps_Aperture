@@ -166,13 +166,6 @@
                 android:drawableTop="@drawable/ic_blur_off"
                 android:text="@string/effect_none" />
 
-            <!-- MotCam: Auto smile capture toggle -->
-            <Button
-                android:id="@+id/smileCaptureButton"
-                style="@style/Theme.Aperture.Camera.SecondaryTopBarButton"
-                android:drawableTop="@drawable/ic_smile"
-                android:text="@string/smile_capture_off" />
-
             <!-- MotCam: Long / slow shutter exposure -->
             <Button
                 android:id="@+id/longExposureButton"

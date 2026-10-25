@@ -88,7 +88,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.zxing.core)
     implementation(libs.zxing.cpp.android)
-    implementation(libs.mlkit.face.detection)
 }
 
 configure<GenerateBpPluginExtension> {

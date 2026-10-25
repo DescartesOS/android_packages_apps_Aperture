@@ -137,7 +137,6 @@ import org.lineageos.aperture.ui.views.LevelerView
 import org.lineageos.aperture.ui.views.PreviewBlurView
 import org.lineageos.aperture.ui.views.SquareCropOverlayView
 import org.lineageos.aperture.ui.views.VerticalSlider
-import org.lineageos.aperture.analyzer.SmileCaptureAnalyzer
 import org.lineageos.aperture.utils.ExifUtils
 import org.lineageos.aperture.utils.GoogleLensUtils
 import org.lineageos.aperture.utils.PermissionsManager
@@ -189,7 +188,6 @@ open class CameraActivity : AppCompatActivity(R.layout.activity_camera) {
     private val videoSnapshotButton by lazy { findViewById<ImageButton>(R.id.videoSnapshotButton) }
     private val videoDynamicRangeButton by lazy { findViewById<Button>(R.id.videoDynamicRangeButton) }
     private val squareCropOverlayView by lazy { findViewById<SquareCropOverlayView>(R.id.squareCropOverlayView) }
-    private val smileCaptureButton by lazy { findViewById<Button>(R.id.smileCaptureButton) }
     private val longExposureButton by lazy { findViewById<Button>(R.id.longExposureButton) }
     private val filterButton by lazy { findViewById<Button>(R.id.filterButton) }
     private val viewFinder by lazy { findViewById<PreviewView>(R.id.viewFinder) }
@@ -263,20 +261,6 @@ open class CameraActivity : AppCompatActivity(R.layout.activity_camera) {
         }
     }
     private var zoomGestureDetectorIsInProgress = false
-
-    private val smileCaptureAnalyzer by lazy {
-        SmileCaptureAnalyzer {
-            runOnUiThread {
-                if (viewModel.smileCaptureEnabled.value
-                    && viewModel.cameraMode.value == CameraMode.PHOTO
-                    && viewModel.cameraState.value == CameraState.IDLE
-                ) {
-                    startShutterAnimation(ShutterAnimation.PhotoCapture)
-                    viewModel.takePhoto()
-                }
-            }
-        }
-    }
 
     private val handler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
@@ -457,7 +441,6 @@ open class CameraActivity : AppCompatActivity(R.layout.activity_camera) {
 
         // Set secondary top bar button callbacks
         aspectRatioButton.setOnClickListener { viewModel.cyclePhotoAspectRatio() }
-        smileCaptureButton.setOnClickListener { viewModel.toggleSmileCapture() }
         longExposureButton.setOnClickListener { viewModel.cycleLongExposure() }
         filterButton.setOnClickListener { viewModel.cycleFilter() }
         videoQualityButton.setOnClickListener { viewModel.cycleVideoQuality() }
@@ -767,7 +750,6 @@ open class CameraActivity : AppCompatActivity(R.layout.activity_camera) {
 
                 // Update secondary top bar buttons
                 aspectRatioButton.isVisible = cameraMode != CameraMode.VIDEO
-                smileCaptureButton.isVisible = cameraMode == CameraMode.PHOTO
                 longExposureButton.isVisible = cameraMode == CameraMode.PHOTO
                 filterButton.isVisible = cameraMode == CameraMode.PHOTO
                 videoQualityButton.isVisible = cameraMode == CameraMode.VIDEO
@@ -923,7 +905,6 @@ open class CameraActivity : AppCompatActivity(R.layout.activity_camera) {
                 aspectRatioButton.isEnabled = cameraState == CameraState.IDLE
                 effectButton.isEnabled = cameraState == CameraState.IDLE
                 settingsButton.isEnabled = cameraState == CameraState.IDLE
-                smileCaptureButton.isEnabled = cameraState == CameraState.IDLE
                 longExposureButton.isEnabled = cameraState == CameraState.IDLE
                 filterButton.isEnabled = cameraState == CameraState.IDLE
 
@@ -1443,27 +1424,6 @@ open class CameraActivity : AppCompatActivity(R.layout.activity_camera) {
         }
 
         launch {
-            viewModel.smileCaptureEnabled.collectLatest { enabled ->
-                smileCaptureButton.setText(
-                    if (enabled) R.string.smile_capture_on else R.string.smile_capture_off
-                )
-                if (viewModel.cameraMode.value == CameraMode.PHOTO) {
-                    if (enabled) {
-                        viewModel.cameraController.setImageAnalysisAnalyzer(
-                            viewModel.cameraExecutor, smileCaptureAnalyzer
-                        )
-                        viewModel.cameraController.setEnabledUseCases(
-                            CameraController.IMAGE_CAPTURE or CameraController.IMAGE_ANALYSIS
-                        )
-                    } else {
-                        viewModel.cameraController.clearImageAnalysisAnalyzer()
-                        viewModel.cameraController.setEnabledUseCases(CameraController.IMAGE_CAPTURE)
-                    }
-                }
-            }
-        }
-
-        launch {
             viewModel.cameraConfiguration.collectLatest { config ->
                 if (config is CameraConfiguration.Photo) {
                     longExposureButton.setText(
@@ -1657,15 +1617,7 @@ open class CameraActivity : AppCompatActivity(R.layout.activity_camera) {
                         )
                         .build()
 
-                if (viewModel.smileCaptureEnabled.value) {
-                    viewModel.cameraController.setImageAnalysisAnalyzer(
-                        viewModel.cameraExecutor, smileCaptureAnalyzer
-                    )
-                    CameraController.IMAGE_CAPTURE or CameraController.IMAGE_ANALYSIS
-                } else {
-                    viewModel.cameraController.clearImageAnalysisAnalyzer()
-                    CameraController.IMAGE_CAPTURE
-                }
+                CameraController.IMAGE_CAPTURE
             }
 
             is CameraConfiguration.Video -> {

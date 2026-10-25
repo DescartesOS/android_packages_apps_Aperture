@@ -183,15 +183,6 @@ class CameraViewModel(application: Application) : ApertureViewModel(application)
      */
     val inSingleCaptureMode = MutableStateFlow(false)
 
-    /**
-     * Whether auto smile capture is enabled.
-     */
-    val smileCaptureEnabled = MutableStateFlow(false)
-
-    fun toggleSmileCapture() {
-        smileCaptureEnabled.value = !smileCaptureEnabled.value
-    }
-
     val currentFilter = MutableStateFlow(PhotoFilter.NONE)
 
     fun cycleFilter() {
